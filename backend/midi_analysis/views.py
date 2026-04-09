@@ -81,6 +81,11 @@ def upload_midi(request):
             'analysis': result,
         }, status=201)
 
+    except ValueError as e:
+        midi_obj.status = 'error'
+        midi_obj.save()
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         midi_obj.status = 'error'
         midi_obj.save()

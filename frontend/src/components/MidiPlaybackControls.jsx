@@ -8,17 +8,19 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PianoSynth, playMidiSequence } from '../services/pianoSynth';
 import { formatTimeShort } from '../utils/noteUtils';
 
-export default function MidiPlaybackControls({
+const MidiPlaybackControls = React.forwardRef(function MidiPlaybackControls({
   notes = [],
   duration = 10,
   tempo = 120,
   onTimeUpdate = null,
-}) {
+  onPlayStateChange = null,
+}, ref) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.6);
   const synthRef = useRef(null);
   const playbackRef = useRef(null);
+  const playRunIdRef = useRef(0);
 
   // Initialize synth
   useEffect(() => {
@@ -28,56 +30,78 @@ export default function MidiPlaybackControls({
     };
   }, []);
 
-  const handlePlay = useCallback(async () => {
-    if (notes.length === 0) return;
-    if (isPlaying) return;
+  const updatePlaying = useCallback((next) => {
+    setIsPlaying(next);
+    if (onPlayStateChange) onPlayStateChange(next);
+  }, [onPlayStateChange]);
 
+  const updateTime = useCallback((time) => {
+    setCurrentTime(time);
+    if (onTimeUpdate) onTimeUpdate(time);
+  }, [onTimeUpdate]);
+
+  const stopPlayback = useCallback(() => {
+    if (playbackRef.current) {
+      playbackRef.current.stop();
+      playbackRef.current = null;
+    }
+  }, []);
+
+  const startPlayback = useCallback(async (startAt) => {
+    if (notes.length === 0) return;
+
+    const runId = ++playRunIdRef.current;
     const synth = synthRef.current;
     await synth.init();
     synth.setVolume(volume);
 
-    setIsPlaying(true);
+    updatePlaying(true);
 
-    const playback = playMidiSequence(synth, notes, currentTime, (time) => {
-      setCurrentTime(time);
-      if (onTimeUpdate) onTimeUpdate(time);
+    const playback = playMidiSequence(synth, notes, startAt, (time) => {
+      updateTime(time);
     });
 
     playbackRef.current = playback;
 
     await playback.promise;
-    setIsPlaying(false);
+    if (playRunIdRef.current !== runId) return;
+
     playbackRef.current = null;
-  }, [notes, isPlaying, currentTime, volume, onTimeUpdate]);
+    updatePlaying(false);
+  }, [notes, updatePlaying, updateTime, volume]);
+
+  const handlePlay = useCallback(async () => {
+    if (notes.length === 0) return;
+    if (isPlaying) return;
+
+    startPlayback(currentTime);
+  }, [notes, isPlaying, currentTime, startPlayback]);
 
   const handlePause = useCallback(() => {
-    if (playbackRef.current) {
-      playbackRef.current.stop();
-      playbackRef.current = null;
-    }
-    setIsPlaying(false);
-  }, []);
+    stopPlayback();
+    updatePlaying(false);
+  }, [stopPlayback, updatePlaying]);
 
   const handleStop = useCallback(() => {
-    if (playbackRef.current) {
-      playbackRef.current.stop();
-      playbackRef.current = null;
+    stopPlayback();
+    updatePlaying(false);
+    updateTime(0);
+  }, [stopPlayback, updatePlaying, updateTime]);
+
+  const seekTo = useCallback((newTime, { resume } = { resume: false }) => {
+    const clamped = Math.max(0, Math.min(duration || 0, newTime || 0));
+    stopPlayback();
+    updateTime(clamped);
+    updatePlaying(false);
+    if (resume) {
+      startPlayback(clamped);
     }
-    setIsPlaying(false);
-    setCurrentTime(0);
-    if (onTimeUpdate) onTimeUpdate(0);
-  }, [onTimeUpdate]);
+  }, [duration, startPlayback, stopPlayback, updatePlaying, updateTime]);
 
   const handleSeek = useCallback((e) => {
     const newTime = parseFloat(e.target.value);
-    if (isPlaying) {
-      handlePause();
-      setCurrentTime(newTime);
-    } else {
-      setCurrentTime(newTime);
-    }
-    if (onTimeUpdate) onTimeUpdate(newTime);
-  }, [isPlaying, handlePause, onTimeUpdate]);
+    seekTo(newTime, { resume: isPlaying });
+  }, [isPlaying, seekTo]);
 
   const handleVolumeChange = useCallback((e) => {
     const v = parseFloat(e.target.value);
@@ -86,6 +110,14 @@ export default function MidiPlaybackControls({
       synthRef.current.setVolume(v);
     }
   }, []);
+
+  React.useImperativeHandle(ref, () => ({
+    seekTo,
+    stop: handleStop,
+    pause: handlePause,
+    play: handlePlay,
+    getState: () => ({ isPlaying, currentTime, duration, tempo, volume }),
+  }), [seekTo, handleStop, handlePause, handlePlay, isPlaying, currentTime, duration, tempo, volume]);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -167,7 +199,9 @@ export default function MidiPlaybackControls({
       </div>
     </div>
   );
-}
+});
+
+export default MidiPlaybackControls;
 
 const styles = {
   container: {

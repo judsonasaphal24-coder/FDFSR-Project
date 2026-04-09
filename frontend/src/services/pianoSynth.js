@@ -240,12 +240,19 @@ export function playMidiSequence(synth, notes, startTime = 0, onProgress = null)
   let progressInterval = null;
   const playStartMs = performance.now();
   const playStartOffset = startTime;
+  let resolved = false;
+  let resolvePromise = null;
 
   const sorted = [...notes].sort((a, b) =>
     (a.start_time || 0) - (b.start_time || 0)
   );
 
   const promise = new Promise((resolve) => {
+    resolvePromise = () => {
+      if (resolved) return;
+      resolved = true;
+      resolve();
+    };
     for (const note of sorted) {
       const noteStart = (note.start_time || 0) - playStartOffset;
       const dur = note.duration || 0.3;
@@ -279,7 +286,7 @@ export function playMidiSequence(synth, notes, startTime = 0, onProgress = null)
     const endTid = setTimeout(() => {
       stopped = true;
       if (progressInterval) clearInterval(progressInterval);
-      resolve();
+      resolvePromise();
     }, totalMs);
     timeouts.push(endTid);
   });
@@ -290,6 +297,7 @@ export function playMidiSequence(synth, notes, startTime = 0, onProgress = null)
       timeouts.forEach(clearTimeout);
       if (progressInterval) clearInterval(progressInterval);
       synth.allNotesOff();
+      if (resolvePromise) resolvePromise();
     },
     promise,
   };

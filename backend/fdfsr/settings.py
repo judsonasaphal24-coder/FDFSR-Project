@@ -161,7 +161,10 @@ AUDIO_SETTINGS = {
 # R integration settings
 # ---------------------------------------------------------------------------
 R_SETTINGS = {
+    # R is optional. Keep it opt-in so MIDI upload doesn't block on slow/missing R deps.
+    'ENABLED': os.environ.get('R_ANALYSIS_ENABLED', '0') == '1',
     'RSCRIPT_PATH': os.environ.get('RSCRIPT_PATH', 'Rscript'),
     'SCRIPTS_DIR': BASE_DIR / 'r_scripts',
-    'TIMEOUT_SECONDS': 60,
+    # Keep this comfortably below common frontend HTTP timeouts.
+    'TIMEOUT_SECONDS': int(os.environ.get('R_TIMEOUT_SECONDS', '10')),
 }

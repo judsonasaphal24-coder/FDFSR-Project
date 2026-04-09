@@ -34,6 +34,8 @@ export default function App() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [midiData, setMidiData] = useState(null);
   const [midiPlaybackTime, setMidiPlaybackTime] = useState(0);
+  const [isMidiPlaying, setIsMidiPlaying] = useState(false);
+  const midiPlaybackRef = React.useRef(null);
 
   // Audio capture
   const { isRecording, rms, waveform, error: captureError, engine, startRecording, stopRecording } = useAudioCapture();
@@ -192,16 +194,24 @@ export default function App() {
                   <>
                     {/* Playback Controls */}
                     <MidiPlaybackControls
+                      ref={midiPlaybackRef}
                       notes={midiNotes}
                       duration={midiData?.analysis?.duration || 10}
                       tempo={midiData?.analysis?.tempo_bpm || 120}
                       onTimeUpdate={setMidiPlaybackTime}
+                      onPlayStateChange={setIsMidiPlaying}
                     />
 
                     {/* Piano Roll */}
                     <PianoRoll
                       notes={midiNotes}
                       duration={midiData?.analysis?.duration || 10}
+                      currentTime={midiPlaybackTime}
+                      followPlayback={isMidiPlaying}
+                      onSeek={(t) => {
+                        setMidiPlaybackTime(t);
+                        midiPlaybackRef.current?.seekTo?.(t, { resume: isMidiPlaying });
+                      }}
                     />
 
                     {/* Chord Timeline */}

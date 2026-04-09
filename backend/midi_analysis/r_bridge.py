@@ -89,6 +89,11 @@ def analyze_midi_with_r(midi_path: str) -> Dict:
     Run full MIDI analysis using R scripts.
     Returns structured analysis data.
     """
+    # R analysis is optional and can be slow depending on local R packages.
+    # Keep it opt-in so the API doesn't block on R by default.
+    if not settings.R_SETTINGS.get('ENABLED', False):
+        return analyze_midi_with_python(midi_path)
+
     if not is_r_available():
         logger.warning("R not available, falling back to Python MIDI analysis")
         return analyze_midi_with_python(midi_path)
@@ -115,7 +120,10 @@ def analyze_midi_with_python(midi_path: str) -> Dict:
     except ImportError:
         return {'error': 'Neither R nor mido is available for MIDI analysis'}
 
-    mid = mido.MidiFile(midi_path)
+    try:
+        mid = mido.MidiFile(midi_path)
+    except (EOFError, OSError, ValueError) as e:
+        raise ValueError('Invalid or corrupted MIDI file') from e
 
     # Extract notes
     notes = []
