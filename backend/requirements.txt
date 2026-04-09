@@ -1,0 +1,20 @@
+# Django & Web
+Django>=4.2,<5.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+channels>=4.0
+channels-redis>=4.1
+daphne>=4.0
+
+# Audio & DSP
+numpy>=1.24
+scipy>=1.11
+librosa>=0.10
+
+# MIDI (Python fallback)
+mido>=1.3
+python-rtmidi>=1.5
+
+# Utilities
+jsonschema>=4.0
+python-dotenv>=1.0

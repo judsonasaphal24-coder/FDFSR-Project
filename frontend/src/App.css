@@ -1,0 +1,231 @@
+/* ===========================================================================
+   App Layout Styles
+   =========================================================================== */
+
+/* Main app layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Visualization column (main content) */
+.viz-column {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  min-width: 0;
+}
+
+.viz-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Info column (right sidebar) */
+.info-column {
+  width: 220px;
+  min-width: 220px;
+  overflow-y: auto;
+  padding: 12px 12px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid var(--border-subtle);
+}
+
+/* ---------------------------------------------------------------------------
+   Current Pitch Display
+   --------------------------------------------------------------------------- */
+.pitch-display {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.pitch-note {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 30px var(--glow-primary);
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+}
+
+.pitch-freq {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.pitch-cents {
+  font-size: 1rem;
+  font-weight: 600;
+  transition: color 100ms ease;
+}
+
+.pitch-confidence {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.conf-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: 2px;
+  transition: width 80ms linear;
+}
+
+/* ---------------------------------------------------------------------------
+   Upload Section
+   --------------------------------------------------------------------------- */
+.upload-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.loading-text {
+  font-size: 0.7rem;
+  color: var(--accent-primary);
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+.error-text {
+  font-size: 0.7rem;
+  color: var(--error);
+}
+
+/* ---------------------------------------------------------------------------
+   Empty State
+   --------------------------------------------------------------------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  max-width: 300px;
+}
+
+/* Inline empty state (smaller, used inside panels) */
+.empty-state-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Progress pulse animation for uploads */
+@keyframes progressPulse {
+  0%, 100% { width: 30%; margin-left: 0; }
+  50% { width: 70%; margin-left: 15%; }
+}
+
+/* ---------------------------------------------------------------------------
+   Table Styling
+   --------------------------------------------------------------------------- */
+table {
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border-default);
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 1;
+}
+
+td {
+  padding: 5px 8px;
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+tr:hover td {
+  background: rgba(0, 212, 255, 0.03);
+}
+
+/* ---------------------------------------------------------------------------
+   Spinner Animation
+   --------------------------------------------------------------------------- */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .info-column {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .viz-column {
+    padding: 8px;
+  }
+}
